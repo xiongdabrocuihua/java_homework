@@ -1,7 +1,8 @@
 # java作业  
 
 ## 目录结构  
-'''
+```
+
 javahomework/
 ├── .gitignore
 ├── abc_tool.py
@@ -9,5 +10,6 @@ javahomework/
 └── src/
     └── java_work/
         └── Main.java
-'''
+```
+
 
