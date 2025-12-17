@@ -67,7 +67,7 @@ public class GameMap {
         List<Item> forestLoot = List.of(new HealthPotion(), new ManaPotion());
         Location forest = new Location(
             "迷雾森林",
-            "树木遮天蔽日，雾气弥漫，能听到奇怪的声响。",
+            "参天的古木遮天蔽日，潮湿的空气里混杂着腐叶和魔物的气息。每走一步都能听到枝叶的沙沙声，仿佛有无数眼睛在暗中窥视。",
             'F',
             forestEnemies,
             forestLoot,
@@ -97,7 +97,7 @@ public class GameMap {
         List<Item> towerLoot = List.of(new HealthPotion(), new DefensePotion(), new ManaPotion());
         Location tower = new Location(
             "钟楼废墟",
-            "破败的钟楼里，守护骑士的灵魂在游荡。",
+            "锈迹斑斑的钟摆早已停摆，砖石缝隙中长出了暗紫色的苔藓。空气中弥漫着钢铁和神圣的气息——守护骑士的灵魂在此镇守，阻挡一切逃避过去的人。",
             'T',
             towerEnemies,
             towerLoot,
@@ -112,7 +112,7 @@ public class GameMap {
         List<Item> lakeLoot = List.of(new HealthPotion(), new ManaPotion(), new DefensePotion());
         Location lake = new Location(
             "镜湖",
-            "湖面如镜，倒映出不属于这个世界的影子。",
+            "湖面如黑曜石般光滑，没有一丝波纹。湖水倒映出的不是你的模样，而是你内心最深的恐惧和遗憾。镜影就藏在倒影中，它是你未竟的过去，也是你必须面对的终局。",
             'M',
             lakeEnemies,
             lakeLoot,
@@ -123,7 +123,7 @@ public class GameMap {
         sceneConfig.put('M', lake);
 
         // 空地（.）：无场景
-        sceneConfig.put('.', new Location("空地", "空旷的平地，无特殊事件。", '.', List.of()));
+        sceneConfig.put('.', new Location("空地", "相对平坦的地面，偶尔能看到前人留下的脚印，指引着你向更深的区域探索。", '.', List.of()));
     }
 
     /**
@@ -185,7 +185,7 @@ public class GameMap {
      * 显示当前8×8地图（带图例）—— 无需修改，自动打印8行8列
      */
     public void displayMap() {
-        System.out.println("\n===== 8×8 游戏地图 =====");
+        System.out.println("\n===== 8x8 游戏地图 =====");
         // 打印8×8地图矩阵
         for (char[] row : mapMatrix) {
             for (char c : row) {
@@ -197,11 +197,11 @@ public class GameMap {
         System.out.println("===== 图例 =====");
         System.out.println("@ = 你的位置 | # = 山脉（不可通行） | V = 黎明村（安全区）");
         System.out.println("F = 迷雾森林（遇怪） | C = 低语峡谷（遇怪+陷阱） | T = 钟楼废墟（小Boss）");
-        System.out.println("M = 镜湖（最终Boss） | . = 空地");
+        System.out.println("M = 镜湖(最终Boss) | . = 空地");
         System.out.println("===================");
         // 打印当前位置
         Location currentLoc = getCurrentLocation();
-        System.out.printf("当前位置：%s（%s）%n", currentLoc.getName(), currentLoc.getDescription());
+        System.out.printf("当前位置：%s(%s)%n", currentLoc.getName(), currentLoc.getDescription());
     }
 
     /**
@@ -217,7 +217,7 @@ public class GameMap {
         if (random.nextDouble() < currentLoc.getTrapRate()) {
             int trapDmg = currentLoc.getTrapDamage();
             player.setHp(player.getHp() - trapDmg);
-            System.out.printf("[陷阱] 你触发了陷阱！受到%d点伤害，当前HP：%d%n", trapDmg, player.getHp());
+            System.out.printf("[陷阱] 你触发了陷阱!受到%d点伤害,当前HP:%d%n", trapDmg, player.getHp());
         }
 
         // 2. 触发遇怪
@@ -231,11 +231,11 @@ public class GameMap {
                 } else if (enemyClass == Goblin.class) {
                     encounterEnemy = new Goblin("哥布林", 35, 0, 7, 3);
                 } else if (enemyClass == GuardianKnight.class) {
-                    encounterEnemy = new GuardianKnight("守护骑士（小Boss）", 80, 0, 10, 6);
+                    encounterEnemy = new GuardianKnight("守护骑士(小Boss)", 80, 0, 8, 5);
                 } else if (enemyClass == MirrorShadow.class) {
-                    encounterEnemy = new MirrorShadow("镜影（最终Boss）", 150, 0, 15, 8);
+                    encounterEnemy = new MirrorShadow("镜影(最终Boss)", 120, 0, 10, 6);
                 }
-                System.out.printf("[遇怪] %s出现在你面前！准备战斗！%n", encounterEnemy.getName());
+                System.out.printf("[遇怪] %s出现在你面前!准备战斗!%n", encounterEnemy.getName());
             } catch (Exception e) {
                 System.out.println("[错误] 怪物生成失败：" + e.getMessage());
             }
@@ -245,7 +245,7 @@ public class GameMap {
         if (!currentLoc.getLootItems().isEmpty() && random.nextDouble() < 0.5) { // 50%概率获得战利品
             Item loot = currentLoc.getLootItems().get(random.nextInt(currentLoc.getLootItems().size()));
             player.getInventory().addItem(loot);
-            System.out.printf("[战利品] 你在%s找到了%s！%n", currentLoc.getName(), loot.getName());
+            System.out.printf("[战利品] 你在%s找到了%s!%n", currentLoc.getName(), loot.getName());
         }
 
         return encounterEnemy;

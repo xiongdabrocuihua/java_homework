@@ -43,6 +43,16 @@ public class Inventory {
         return true;
     }
 
+    // 获取道具列表
+    public List<Item> getItems() {
+        return this.items;
+    }
+
+    // 清空道具列表
+    public void clearItems() {
+        this.items.clear();
+    }
+
     /**
      * 展示背包内所有道具（带索引，方便选择）
      */

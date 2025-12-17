@@ -1,29 +1,36 @@
-import java.util.Random;
-
-public class Enemy extends Character{
-    private static final Random random = new Random();
-    private Skill poisonStrike;
+public abstract class Enemy extends Character{
 
     public Enemy(String name, int hp, int mp, int attack, int defense){
         super(name,hp,mp,attack,defense);
-        this.poisonStrike = new PoisonStrikeSkill();
     }
     
     /**
      * 怪物行动逻辑：随机选择普攻/技能
      * @param target 攻击目标（玩家）
      */
-    //默认是史莱姆，每个怪物都会重写攻击行为实现特殊化
-    public void takeAction(Character target) {
-        // 生成0-99的随机数，判断行动类型
-        int randomNum = random.nextInt(100);
-        if (randomNum < 90) {
-            // 50%概率：普通攻击
-            attack(target);
-        } else {
-            // 10%概率：毒击技能
-            poisonStrike.apply(this, target);
-        }
+    //抽象方法，强制子类实现行动 技能逻辑
+    public abstract void takeAction(Character target);
+
+    // 基础方法（确保技能中能正常调用）
+    @Override
+    public boolean isAlive() {
+        return getHp() > 0;
+    }
+
+    @Override
+    public void takeDamage(int damage) {
+        // 防御抵消部分伤害（技能固定伤害除外）
+        int finalDmg = Math.max(damage - getDefense(), 1); // 至少1点伤害
+        setHp(getHp() - finalDmg);
+        System.out.printf("[伤害] %s受到%d点伤害!剩余HP:%d%n", getName(), finalDmg, getHp());
+    }
+
+    // 普通攻击（供子类技能外的基础攻击调用）
+    public void attack(Character target) {
+        int damage = getAttack();
+        target.takeDamage(damage);
+        System.out.printf("[攻击] %s发起普通攻击!%n", 
+                getName());
     }
 
     //显示敌人状态

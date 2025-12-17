@@ -14,6 +14,16 @@ public class Player extends Character{
 
     private List<Skill> skills;
 
+    // ===== 战斗前快照存储 =====
+    private int preBattleHp;       // 战斗前HP
+    private int preBattleMp;       // 战斗前MP
+    private int preBattlePoisonTurns; // 战斗前中毒回合
+    private int preBattlePoisonDmg;   // 战斗前中毒伤害
+    private int preBattleTempDefense; // 战斗前临时防御
+    private int preBattleTempDefenseTurns; // 战斗前临时防御回合
+    private List<Item> preBattleInventory; // 战斗前道具栏（深拷贝）
+
+    //初始化
     public Player(String name, int hp, int mp, int attack, int defense){
         super(name,hp,mp,attack,defense);
         this.inventory = new Inventory(); // 初始化背包
@@ -22,7 +32,28 @@ public class Player extends Character{
         this.skills = new ArrayList<>();
         skills.add(new FireballSkill());
         skills.add(new HealSkill());
+        this.preBattleInventory = new ArrayList<>();
         System.out.printf("%s掌握了「%s」和「%s」!%n", name, skills.get(0).getName(), skills.get(1).getName());
+    }
+
+    // ===== 保存战斗前的状态快照 =====
+    public void savePreBattleState() {
+        // 1. 保存基础属性
+        this.preBattleHp = getHp();
+        this.preBattleMp = getMp();
+        // 2. 保存负面状态
+        this.preBattlePoisonTurns = getPoisonTurns();
+        this.preBattlePoisonDmg = getPoisonDmg();
+        // 3. 保存临时属性
+        this.preBattleTempDefense = tempDefense;
+        this.preBattleTempDefenseTurns = tempDefenseTurns;
+        // 4. 深拷贝道具栏（避免引用共享，确保恢复时是原道具）
+        this.preBattleInventory.clear();
+        for (Item item : inventory.getItems()) {
+            // 假设Item是不可变类，直接复制；若Item有修改逻辑，需实现克隆方法
+            this.preBattleInventory.add(item);
+        }
+        System.out.println("已保存战斗前状态！");
     }
 
     //展示技能列表
@@ -34,6 +65,24 @@ public class Player extends Character{
         System.out.println("====================");
     }
 
+    // ===== 新增：恢复到战斗前的状态（失败重试专用）=====
+    public void restorePreBattleState() {
+        // 1. 恢复基础属性
+        setHp(preBattleHp);
+        setMp(preBattleMp);
+        // 2. 恢复负面状态
+        setPoisonTurns(preBattlePoisonTurns);
+        setPoisonDmg(preBattlePoisonDmg);
+        // 3. 恢复临时属性
+        this.tempDefense = preBattleTempDefense;
+        this.tempDefenseTurns = preBattleTempDefenseTurns;
+        // 4. 恢复道具栏
+        inventory.clearItems();
+        for (Item item : preBattleInventory) {
+            inventory.addItem(item);
+        }
+        System.out.println("[重置] 已恢复到战斗开始前的状态！");
+    }
     /**
      * 释放指定编号的技能
      * @param skillIndex 技能编号

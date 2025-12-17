@@ -12,12 +12,13 @@ public class Goblin extends Enemy {
 
     @Override
     public void takeAction(Character target) {
-        // 5%概率偷袭（双倍伤害），95%普通攻击
-        if (random.nextInt(100) < 5) {
-            System.out.printf("%s发动偷袭!%n", getName());
-            int doubleDmg = getAttack() * 2;
-            target.takeDamage(doubleDmg);
-        } else {
+        int randomNum = random.nextInt(100);
+        if (randomNum < 25) { // 25%概率偷袭（双倍伤害）
+            System.out.println("哥布林发动偷袭！");
+            int sneakDmg = getAttack() * 2;
+            target.takeDamage(sneakDmg);
+            System.out.printf("你受到%d点偷袭伤害!当前HP:%d%n", sneakDmg, target.getHp());
+        } else { // 75%概率普通攻击
             attack(target);
         }
     }
