@@ -1,6 +1,6 @@
 package com.thegame.character;
 
-import java.util.Random;
+
 
 public abstract class Enemy extends Character{
 

@@ -16,6 +16,7 @@ public class Location {
     private double encounterRate; // 遇怪概率（0-1）
     private double trapRate;      // 陷阱概率（0-1）
     private int trapDamage;       // 陷阱伤害
+    private boolean hasVisited;   // 是否已访问过该场景
 
     // 构造方法（安全区专用：无怪物/陷阱）
     public Location(String name, String description, char sceneChar, List<Item> lootItems) {
@@ -27,6 +28,7 @@ public class Location {
         this.encounterRate = 0.0;
         this.trapRate = 0.0;
         this.trapDamage = 0;
+        this.hasVisited = false;
     }
 
     // 构造方法（战斗场景：有怪物/陷阱）
@@ -41,6 +43,7 @@ public class Location {
         this.encounterRate = encounterRate;
         this.trapRate = trapRate;
         this.trapDamage = trapDamage;
+        this.hasVisited = false;
     }
 
     // Getter方法
@@ -52,4 +55,6 @@ public class Location {
     public double getEncounterRate() { return encounterRate; }
     public double getTrapRate() { return trapRate; }
     public int getTrapDamage() { return trapDamage; }
+    public boolean isHasVisited() { return hasVisited; }
+    public void setHasVisited(boolean hasVisited) { this.hasVisited = hasVisited; }
 }

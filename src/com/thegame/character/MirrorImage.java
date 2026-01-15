@@ -1,6 +1,6 @@
 package com.thegame.character;
 
-import java.util.Random;
+
 
 /**
  * 镜影召唤的小镜像：HP30/攻击5/防御1，无特殊技能

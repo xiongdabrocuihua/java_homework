@@ -265,11 +265,22 @@ public class GameMap {
             }
         }
 
-        // 3. 随机获得战利品（安全区/战斗场景都可能触发）
-        if (!currentLoc.getLootItems().isEmpty() && random.nextDouble() < 0.5) { // 50%概率获得战利品
-            Item loot = currentLoc.getLootItems().get(random.nextInt(currentLoc.getLootItems().size()));
-            player.getInventory().addItem(loot);
-            System.out.printf("[战利品] 你在%s找到了%s!%n", currentLoc.getName(), loot.getName());
+        // 3. 获得战利品
+        if (!currentLoc.getLootItems().isEmpty()) {
+            // 对于黎明村（V）：第一次访问必获得战利品
+            if (currentLoc.getSceneChar() == 'V' && !currentLoc.isHasVisited()) {
+                // 第一次访问黎明村，必获得生命药水
+                Item loot = currentLoc.getLootItems().get(0); // 黎明村只有生命药水
+                player.getInventory().addItem(loot);
+                System.out.printf("[战利品] 你在%s找到了%s!%n", currentLoc.getName(), loot.getName());
+                currentLoc.setHasVisited(true); // 标记为已访问
+            } 
+            // 其他场景或已访问的黎明村：50%概率获得战利品
+            else if (currentLoc.getSceneChar() != 'V' && random.nextDouble() < 0.5) {
+                Item loot = currentLoc.getLootItems().get(random.nextInt(currentLoc.getLootItems().size()));
+                player.getInventory().addItem(loot);
+                System.out.printf("[战利品] 你在%s找到了%s!%n", currentLoc.getName(), loot.getName());
+            }
         }
 
         return encounterEnemy;

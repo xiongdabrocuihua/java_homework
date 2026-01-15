@@ -27,7 +27,8 @@ public abstract class Character {
     //处理每回合中毒伤害
     public void takePoisonDamage(){
         if(poisonTurns>0){
-            hp = Math.max(0,hp - poisonDmg);
+            int newHp = hp - poisonDmg;
+            setHp(newHp); // 使用setHp方法，确保不低于0且不高于maxHp
             System.out.printf("%s受到%d点毒伤!剩余生命值:%d%n",name, poisonDmg, hp);
             poisonTurns--;
             // 中毒回合结束，重置中毒状态
@@ -85,7 +86,8 @@ public abstract class Character {
 
     //设置生命值
     public void setHp(int hp){
-        this.hp = Math.max(0,hp);
+        // 确保生命值不小于0且不大于最大生命值
+        this.hp = Math.max(0, Math.min(hp, this.maxHp));
     }
 
     //获取法力值
@@ -95,7 +97,8 @@ public abstract class Character {
 
     //设置法力值
     public void setMp(int mp){
-        this.mp = Math.max(0,mp);
+        // 确保法力值不小于0且不大于最大法力值
+        this.mp = Math.max(0, Math.min(mp, this.maxMp));
     }
 
     //获取攻击值
