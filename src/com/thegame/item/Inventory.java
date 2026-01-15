@@ -42,7 +42,7 @@ public class Inventory {
         Item item = items.get(index);
         item.use(user);
         // 使用后从背包移除道具
-        items.remove(index);
+        items.subList(index, index + 1).clear();
         return true;
     }
 

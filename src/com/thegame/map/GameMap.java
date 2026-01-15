@@ -195,6 +195,17 @@ public class GameMap {
     }
 
     /**
+     * 获取地图矩阵副本（用于Web展示）
+     */
+    public char[][] getMapMatrix() {
+        char[][] copy = new char[mapMatrix.length][];
+        for (int i = 0; i < mapMatrix.length; i++) {
+            copy[i] = Arrays.copyOf(mapMatrix[i], mapMatrix[i].length);
+        }
+        return copy;
+    }
+
+    /**
      * 显示当前8×8地图（带图例）—— 无需修改，自动打印8行8列
      */
     public void displayMap() {

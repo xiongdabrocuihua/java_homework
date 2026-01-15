@@ -5,7 +5,10 @@ public abstract class Character {
     private int mp;//法力值
     private int attack;//攻击
     private int defense;//防御
+    private int maxHp; // 最大生命值
+    private int maxMp; // 最大法力值
     private int poisonDmg;//每回合中毒伤害
+
     private int poisonTurns;//剩余中毒回合数
 
     //初始化角色属性
@@ -15,6 +18,8 @@ public abstract class Character {
         this.mp = Math.max(0,mp);
         this.attack = Math.max(1,attack);
         this.defense = Math.max(0,defense);
+        this.maxHp = this.hp;
+        this.maxMp = this.mp;
         this.poisonDmg = 0;
         this.poisonTurns = 0;
     }
@@ -96,6 +101,14 @@ public abstract class Character {
     //获取攻击值
     public int getAttack(){
         return attack;
+    }
+
+    public int getMaxHp() {
+        return maxHp;
+    }
+
+    public int getMaxMp() {
+        return maxMp;
     }
 
     //设置攻击值

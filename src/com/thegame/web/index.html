@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java RPG Web Edition</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #222;
+            color: #eee;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        #game-container {
+            width: 800px;
+            background-color: #333;
+            border: 2px solid #555;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #f1c40f;
+            margin-top: 0;
+        }
+        .panel {
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        #status-bar {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+        .stat-item {
+            margin-right: 15px;
+        }
+        .hp { color: #e74c3c; }
+        .mp { color: #3498db; }
+        .gold { color: #f1c40f; }
+        
+        #log-area {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            background-color: #000;
+            color: #ccc;
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .log-entry { margin-bottom: 4px; }
+        .log-new { color: #fff; }
+
+        #controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .control-group {
+            background: #2a2a2a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .group-title {
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #aaa;
+        }
+        
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        button {
+            background-color: #444;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        button:hover { background-color: #555; }
+        button:active { background-color: #666; }
+        button:disabled {
+            background-color: #222;
+            color: #555;
+            cursor: not-allowed;
+            border-color: #333;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        /* 简单的进度条样式 */
+        .bar-container {
+            display: inline-block;
+            width: 100px;
+            height: 10px;
+            background-color: #444;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+        .bar-fill {
+            height: 100%;
+            transition: width 0.3s;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #333;
+            padding: 20px;
+            border: 2px solid #555;
+            border-radius: 5px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            color: #eee;
+        }
+        .map-cell {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #444;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            background-color: #222;
+        }
+        .map-cell.current {
+            border: 2px solid #f1c40f;
+            box-shadow: 0 0 5px #f1c40f;
+        }
+        .inv-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #222;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #444;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>⚔️ 黎明之地 RPG ⚔️</h1>
+        
+        <!-- 玩家状态栏 -->
+        <div id="status-bar" class="panel">
+            <div>
+                <span class="stat-item">👤 <span id="player-name">勇者</span></span>
+                <span class="stat-item hp">HP: <span id="hp-val">80</span>/<span id="max-hp-val">80</span>
+                    <div class="bar-container"><div id="hp-bar" class="bar-fill" style="width: 100%; background-color: #e74c3c;"></div></div>
+                </span>
+                <span class="stat-item mp">MP: <span id="mp-val">50</span>/<span id="max-mp-val">50</span>
+                    <div class="bar-container"><div id="mp-bar" class="bar-fill" style="width: 100%; background-color: #3498db;"></div></div>
+                </span>
+            </div>
+            <div>
+                <span class="stat-item">🎒 物品: <span id="inventory-list">无</span></span>
+            </div>
+        </div>
+
+        <!-- 当前环境/敌人信息 -->
+        <div id="scene-info" class="panel" style="text-align: center;">
+            <div id="location-text">📍 未知地点</div>
+            <div id="enemy-info" style="display: none; color: #e74c3c; margin-top: 10px;">
+                ⚠️ 遭遇敌人: <strong id="enemy-name">???</strong> (HP: <span id="enemy-hp">??</span>)
+            </div>
+        </div>
+
+        <!-- 游戏日志 -->
+        <div id="log-area">
+            <div class="log-entry">欢迎来到游戏！请点击“开始游戏”。</div>
+        </div>
+
+        <!-- 控制区 -->
+        <div id="controls">
+            <!-- 移动控制 -->
+            <div class="control-group">
+                <div class="group-title">移动 / 探索</div>
+                <div class="btn-grid">
+                    <button onclick="showMap()">🗺️ 地图</button>
+                    <button onclick="move('w')" id="btn-w">⬆️ 北</button>
+                    <button onclick="showInventory()">🎒 背包</button>
+                    <button onclick="move('a')" id="btn-a">⬅️ 西</button>
+                    <button onclick="move('s')" id="btn-s">⬇️ 南</button>
+                    <button onclick="move('d')" id="btn-d">➡️ 东</button>
+                </div>
+                <button onclick="startGame()" style="width: 100%; margin-top: 10px; background-color: #27ae60;">🔄 重置/开始游戏</button>
+            </div>
+
+            <!-- 战斗控制 -->
+            <div class="control-group">
+                <div class="group-title">战斗指令</div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <button onclick="battle('attack')" class="action-btn" id="btn-attack">⚔️ 普通攻击</button>
+                    <button onclick="battle('skill', 0)" class="action-btn" id="btn-skill-0">🔥 火球术 (MP 5)</button>
+                    <button onclick="battle('skill', 1)" class="action-btn" id="btn-skill-1">✨ 治疗术 (MP 10)</button>
+                    <button onclick="battle('potion', 'HealthPotion')" class="action-btn" id="btn-potion">🧪 快速使用生命药水</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="map-modal" class="modal-content" style="display:none; width:400px;">
+            <h2 style="text-align:center; color:#f1c40f; margin-top:0;">🗺️ 世界地图</h2>
+            <div id="map-grid" style="display:grid; grid-template-columns: repeat(8, 1fr); gap:2px; margin:20px 0;">
+                <!-- Map cells generated by JS -->
+            </div>
+            <div style="text-align:center; font-size:12px; color:#aaa; margin-bottom:10px;">
+                图例: 🟩森林 ⛰️山脉 🛖村庄 🏰废墟 💧湖泊 🕳️峡谷 😐空地 🔴你
+            </div>
+            <button onclick="closeModal()" style="width:100%;">关闭</button>
+        </div>
+
+        <div id="inventory-modal" class="modal-content" style="display:none; width:300px;">
+            <h2 style="text-align:center; color:#f1c40f; margin-top:0;">🎒 背包</h2>
+            <div id="inventory-items-container" style="max-height:300px; overflow-y:auto; margin-bottom:10px;">
+                <!-- Items generated by JS -->
+            </div>
+            <button onclick="closeModal()" style="width:100%;">关闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 初始化状态
+        let inBattle = false;
+        let lastGameState = null;
+
+        async function apiCall(endpoint, params = {}) {
+            const url = new URL('/api/' + endpoint, window.location.origin);
+            Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                lastGameState = data;
+                updateUI(data);
+            } catch (error) {
+                log("网络错误: " + error.message);
+            }
+        }
+
+        function startGame() {
+            apiCall('start');
+            log("游戏已重置。");
+        }
+
+        function move(dir) {
+            if (inBattle) {
+                log("战斗中无法移动！请先击败敌人。");
+                return;
+            }
+            apiCall('move', { dir: dir });
+        }
+
+        function battle(action, param = '') {
+            if (!inBattle) {
+                log("当前没有敌人，无需战斗。");
+                return;
+            }
+            apiCall('battle', { action: action, param: param });
+        }
+
+        function useItem(index) {
+            apiCall('useItem', { index: index });
+            closeModal();
+        }
+
+        function updateUI(data) {
+            if (data.error) {
+                log("错误: " + data.error);
+                return;
+            }
+
+            // 更新玩家状态
+            if (data.player) {
+                document.getElementById('player-name').textContent = data.player.name;
+                updateBar('hp', data.player.hp, data.player.maxHp);
+                updateBar('mp', data.player.mp, data.player.maxMp); 
+                
+                // 物品栏简略显示
+                const invList = data.inventory && data.inventory.length > 0 ? data.inventory.join(', ') : '无';
+                document.getElementById('inventory-list').textContent = invList;
+            }
+
+            // 更新地点
+            if (data.location) {
+                document.getElementById('location-text').textContent = '📍 ' + data.location;
+            }
+
+            // 更新战斗状态
+            inBattle = data.inBattle;
+            const enemyInfo = document.getElementById('enemy-info');
+            if (inBattle && data.enemy) {
+                enemyInfo.style.display = 'block';
+                document.getElementById('enemy-name').textContent = data.enemy.name;
+                document.getElementById('enemy-hp').textContent = data.enemy.hp;
+                
+                setMoveButtonsDisabled(true);
+            } else {
+                enemyInfo.style.display = 'none';
+                setMoveButtonsDisabled(false);
+            }
+
+            // 更新日志
+            if (data.logs && data.logs.trim() !== "") {
+                log(data.logs);
+            }
+        }
+
+        function updateBar(type, val, max) {
+            document.getElementById(type + '-val').textContent = val;
+            if (max) document.getElementById('max-' + type + '-val').textContent = max;
+            const percentage = Math.max(0, Math.min(100, (val / max) * 100));
+            document.getElementById(type + '-bar').style.width = percentage + '%';
+        }
+
+        function log(message) {
+            const logArea = document.getElementById('log-area');
+            const lines = message.split('\n');
+            lines.forEach(line => {
+                if (line.trim() === '') return;
+                const div = document.createElement('div');
+                div.className = 'log-entry log-new';
+                div.textContent = '> ' + line;
+                logArea.appendChild(div);
+            });
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        function setMoveButtonsDisabled(disabled) {
+            ['w', 'a', 's', 'd'].forEach(key => {
+                document.getElementById('btn-' + key).disabled = disabled;
+            });
+        }
+
+        // Modal Functions
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('map-modal').style.display = 'none';
+            document.getElementById('inventory-modal').style.display = 'none';
+        }
+
+        function showMap() {
+            if (!lastGameState || !lastGameState.map) {
+                log("暂无地图数据，请先开始游戏。");
+                return;
+            }
+            const mapGrid = document.getElementById('map-grid');
+            mapGrid.innerHTML = '';
+            
+            // Map Legend: V=Village, F=Forest, C=Canyon, T=Tower, M=Lake, .=Empty, #=Mountain, @=Player
+            const mapMatrix = lastGameState.map;
+            for (let i = 0; i < mapMatrix.length; i++) {
+                for (let j = 0; j < mapMatrix[i].length; j++) {
+                    const char = mapMatrix[i][j];
+                    const cell = document.createElement('div');
+                    cell.className = 'map-cell';
+                    
+                    let content = '';
+                    let color = '#333';
+                    
+                    if (char === '@') {
+                        content = '🔴'; // Player
+                        cell.classList.add('current');
+                        // 获取玩家所在地的原始地形（后端目前只给了当前的char，也就是@覆盖了原始地形）
+                        // 这有点小问题，显示玩家时不知道下面是什么地形。
+                        // 不过根据颜色或周围环境可以推测，或者后端需要改进。
+                        // 暂时先这样。
+                    } else if (char === 'V') { content = '🛖'; color = '#27ae60'; }
+                    else if (char === 'F') { content = '🟩'; color = '#16a085'; }
+                    else if (char === 'C') { content = '🕳️'; color = '#e67e22'; }
+                    else if (char === 'T') { content = '🏰'; color = '#7f8c8d'; }
+                    else if (char === 'M') { content = '💧'; color = '#2980b9'; }
+                    else if (char === '.') { content = ''; color = '#95a5a6'; } // Empty
+                    else if (char === '#') { content = '⛰️'; color = '#2c3e50'; } // Mountain
+                    
+                    cell.textContent = content;
+                    if (char === '.') cell.style.backgroundColor = color; // 空地用颜色
+                    
+                    mapGrid.appendChild(cell);
+                }
+            }
+
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('map-modal').style.display = 'block';
+        }
+
+        function showInventory() {
+            if (!lastGameState || !lastGameState.inventoryDetails) {
+                log("背包数据为空。");
+                return;
+            }
+            const container = document.getElementById('inventory-items-container');
+            container.innerHTML = '';
+            
+            if (lastGameState.inventoryDetails.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#aaa;">背包空空如也</div>';
+            } else {
+                lastGameState.inventoryDetails.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'inv-item-row';
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = item.name;
+                    
+                    const useBtn = document.createElement('button');
+                    useBtn.textContent = '使用';
+                    useBtn.style.padding = '4px 8px';
+                    useBtn.onclick = () => useItem(item.index);
+                    
+                    row.appendChild(nameSpan);
+                    row.appendChild(useBtn);
+                    container.appendChild(row);
+                });
+            }
+
+            document.getElementById('modal-overlay').style.display = 'flex';
+            document.getElementById('inventory-modal').style.display = 'block';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // 页面加载时自动开始
+        window.onload = startGame;
+    </script>
+</body>
+</html>
